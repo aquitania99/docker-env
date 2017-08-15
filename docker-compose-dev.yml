@@ -1,0 +1,67 @@
+version: '3'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  nginx:
+      image: 'bitnami/nginx:1.12.0-r5'
+      ports:
+          - '80:80'
+          - '443:443'
+      volumes:
+          - app-sync:/var/veromo
+          - ./nginx/bitnami:/bitnami/nginx
+      environment:
+          - SYMFONY_ENV=local
+          - ENV=local
+      networks:
+      - app-tier
+
+  phpfpm:
+      build:
+          context: ./phpfpm
+      expose:
+          - "9000"
+      environment:
+          - MYSQL_DB_HOST=db
+          - MYSQL_DB_USER=root
+          - MYSQL_DB_PASSWORD=Pass@word01
+          - SYMFONY_DB=harmony_db
+          - SYMFONY_ENV=local
+          - ENV=local
+      volumes:
+          - app-sync:/var/veromo
+          - ./phpfpm/conf:/bitnami/php-fpm
+      networks:
+      - app-tier
+      working_dir: /var/veromo
+
+  db:
+      image: mysql
+      ports:
+          - '3306:3306'
+      environment:
+          - MYSQL_ROOT_PASSWORD=Pass@word01
+          - MYSQL_DATABASE=harmony_db
+          - SYMFONY_DB_USER=veromoadmin
+          - WORDPRESS_DB_PASSWORD=Pass@word01
+          - SYMFONY_DB=harmony_db
+      volumes:
+          - ./database:/var/lib/mysql
+      networks:
+      - app-tier
+
+  mongodb:
+    image: 'bitnami/mongodb:latest'
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongodb:/bitnami
+    networks:
+      - app-tier
+
+volumes:
+  app-sync:
+    external: true

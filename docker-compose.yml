@@ -1,0 +1,36 @@
+version: '3'
+services:
+  nginx:
+      image: 'bitnami/nginx:latest'
+      ports:
+          - '80:80'
+          - '443:443'
+      volumes:
+          - .:/var/veromo
+          - ./nginx/bitnami:/bitnami/nginx
+
+  phpfpm:
+      image: bitnami/php-fpm:7.0
+      expose:
+          - "9000"
+      environment:
+          - MYSQL_DB_HOST=db
+          - MYSQL_DB_USER=root
+          - MYSQL_DB_PASSWORD=Pass@word01
+          - SYMFONY_DB=harmony_db
+          - SYMFONY_ENV=dev
+      volumes:
+          - .:/var/veromo:cached
+          - ./phpfpm/conf:/bitnami/php-fpm
+      working_dir: /var/veromo
+
+  db:
+      image: mysql
+      environment:
+          - MYSQL_ROOT_PASSWORD=Pass@word01
+          - MYSQL_DATABASE=harmony_db
+          - SYMFONY_DB_USER=veromoadmin
+          - WORDPRESS_DB_PASSWORD=Pass@word01
+          - SYMFONY_DB=harmony_db
+      volumes:
+          - ./database:/var/lib/mysql
